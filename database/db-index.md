@@ -3,6 +3,7 @@
 > **한 줄 정의:** 인덱스는 *"정렬된 B+tree로 검색 시 **읽어야 할 디스크 페이지 수**를 O(log n)으로 줄이는"* 조회 가속 자료구조다. 대신 쓰기 비용·공간을 치르므로 **선별적으로** 건다.
 
 > 관련 문서:
+> - [index-random-io-and-covering.md](index-random-io-and-covering.md) — 2번 탐색·random I/O·커버링·MRR·선택도 역전을 깊게 판 동반 노트(이 노트 5·6장 심화)
 > - [transaction-and-isolation.md](transaction-and-isolation.md) — 트랜잭션·격리수준·락 (인덱스와 함께 DB 면접 핵심)
 > - [../jpa/optimistic-pessimistic-lock.md](../jpa/optimistic-pessimistic-lock.md) — 락이 잡는 행, 인덱스 유무가 락 범위에 영향
 

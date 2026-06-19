@@ -14,7 +14,7 @@
 | `spring/` | 스프링 프레임워크 (DI·AOP·트랜잭션·비동기 등) | spring-async-event-listener, transactional-deep-dive |
 | `jpa/` | JPA·ORM (영속성 컨텍스트·N+1·OSIV·성능) | persistence-context-and-n-plus-one, second-level-cache, em-threadlocal-transaction, association-mapping-owner, optimistic-pessimistic-lock |
 | `internals/` | OS·동시성·JVM 내부 (프로세스/스레드/메모리/스레드풀/힙) — 서로 촘촘히 링크됨 | process-thread-basics, process-thread-memory, thread-pool, multicore-memory, jvm-heap-metaspace, sync-async-blocking-nonblocking |
-| `database/` | RDB·트랜잭션·격리수준·락·쿼리 | transaction-and-isolation, db-index |
+| `database/` | RDB·트랜잭션·격리수준·락·쿼리 | transaction-and-isolation, db-index, index-random-io-and-covering |
 | `distributed/` | 분산 시스템 (분산 락·합의·CAP·일관성) | distributed-lock-and-consensus |
 | `architecture/` | 설계·아키텍처 패턴 | saga-pattern |
 | `deployment/` | 배포 전략·운영·릴리스 | deploy-strategy, deployment-version-gap |
@@ -45,6 +45,14 @@
 
 > **"커밋"** 하면 그날 공부한 주제를 여기 기록한다. 최신 날짜가 위.
 > 형식: `### YYYY-MM-DD:주제` (날짜와 주제는 콜론으로 붙임, 공백 없이) → 그 아래 `- 소주제`. (규칙은 [`../AGENTS.md`](../AGENTS.md) 5장)
+
+### 2026-06-19:인덱스의 랜덤 I/O와 커버링
+- 순차 vs 랜덤 읽기: 페이지 단위 I/O, random은 흩어진 페이지 점프라 비쌈(대략 ×4 추정치)
+- 보조 인덱스 조회가 random인 이유: leaf는 (컬럼값+PK)를 **컬럼순**, 테이블 행은 **PK순** 저장 → 두 정렬 어긋남 → 2번 탐색 시 흩어진 페이지로 점프
+- MRR: 결과 PK를 PK순 재정렬해 random→sequential, 단 "테이블로 나가는 것" 자체는 못 없앰(교차점만 미룸)
+- 풀스캔 역전: 선택도(**행** 기준) ~20~25%↑면 어차피 거의 모든 페이지 만짐 + random 단가 비쌈 → 풀스캔이 쌈
+- 헷갈린 두 축 정리: 30%=행(선택도, 실행 시) vs 커버링=열/폭(설계 시). 인덱스는 행 수는 테이블과 같고 컬럼만 추려 날씬
+- 커버링은 구조 비교(스키마)로 실행 전 판단 / WHERE 컬럼=걸러내기(없으면 풀스캔), SELECT 컬럼=커버링 여부(다 있으면 random read 소멸)
 
 ### 2026-06-14:JPA 영속성 컨텍스트 심화
 - 2차 캐시: 캐시 3층 구조, 상태 스냅샷 저장, 동시성 전략, 쿼리 캐시 함정, 쓰면 안 되는 경우
