@@ -84,7 +84,40 @@ resource "docker_container" "web" {
 
 ---
 
-## 4. 점진적 누적 — 정적에서 실무까지
+## 4. 리소스 블록 해부 — 무엇이 정해져 있고 무엇이 내 자유인가
+
+```hcl
+resource "docker_image" "nginx" {
+#         └─① 타입 ─┘  └─② 논리명─┘
+  name         = "nginx:alpine"   # ③ 속성이름 = 값
+  keep_locally = false
+}
+```
+
+| 부분 | 누가 정하나 | 틀리면 |
+|------|------------|--------|
+| ① **리소스 타입** (`docker_image`) | **provider가 정함** (고정 목록) | `Invalid resource type` (validate 단계) |
+| ② **논리명** (`"nginx"`) | **내가 짓는다** (코드 안 식별자) | 자유 — 변수명일 뿐 |
+| ③-1 **속성 이름** (`name`, `keep_locally`) | **provider가 정함** (타입별 스키마) | `Unsupported argument` |
+| ③-2 **값** (`"nginx:alpine"`) | **내가 채운다** (타입만 맞으면) | 자유 (string/number/bool) |
+
+**핵심:** 테라폼 자체는 `docker_image`가 뭔지 모른다. **provider(kreuzwerker/docker)가 "이런 타입·속성이 있다"는 스키마를 들고 오고**(`init`이 받아오는 이유), 테라폼은 그 스키마와 내 코드를 **대조**한다.
+
+- 타입·속성 **이름**은 provider 사전에 있는 단어만 → 오타는 **도커에 연결도 하기 전에** 해석 단계에서 거부. (cf. 3장의 두 오타 비교: 타입 오타 `docker_imge`는 validate에서, 이미지 이름 오타 `nginx:alpne`는 apply에서 pull 실패)
+- 논리명·값은 내 자유.
+
+> **자바 비유:** provider = 라이브러리, 타입 = **클래스**, 속성 = **필드/setter**.
+> ```java
+> DockerImage nginx = new DockerImage();   // 타입·논리명
+> nginx.setName("nginx:alpine");           // 속성이름(정해짐) = 값(내 자유)
+> ```
+> 클래스·메서드 이름은 라이브러리가 정한 것만 쓰고(오타=컴파일 에러), 값은 자유. ②논리명은 그냥 변수명.
+
+**실무:** 어떤 속성이 있는지는 외우는 게 아니라 **Terraform Registry의 provider 문서**에서 Required/Optional로 확인한다.
+
+---
+
+## 5. 점진적 누적 — 정적에서 실무까지
 
 같은 블록에 살을 붙여가며 정적 → 동적 → 재사용 → 클라우드 실무로 올라간다.
 
@@ -107,7 +140,7 @@ resource "docker_container" "web" {
 
 ---
 
-## 5. 버전 제약 `~>` (pessimistic constraint)
+## 6. 버전 제약 `~>` (pessimistic constraint)
 
 **규칙: 명시한 가장 오른쪽 자리까지만 증가 허용, 그 왼쪽은 고정.**
 
@@ -121,7 +154,7 @@ resource "docker_container" "web" {
 
 ---
 
-## 6. provider 인증 — credential chain
+## 7. provider 인증 — credential chain
 
 `provider "aws" {}`를 비워둬도 AWS provider(내부 AWS SDK)가 정해진 순서로 자격증명을 자동 탐색한다.
 
@@ -136,7 +169,7 @@ resource "docker_container" "web" {
 
 ---
 
-## 7. data vs resource (실무 진입점)
+## 8. data vs resource (실무 진입점)
 
 - `resource` = **만든다.** apply 시 생성, destroy 시 삭제 — 테라폼이 생명주기를 소유.
 - `data` = **조회만 한다.** 기존에 존재하는 것을 읽어올 뿐, 생성·삭제하지 않는다. destroy해도 안 지워진다.
@@ -150,7 +183,7 @@ AMI ID는 리전마다 다르고 수시로 바뀌므로 하드코딩 금지 → 
 
 ---
 
-## 8. 팀/실무로 확장 (다음 스텝)
+## 9. 팀/실무로 확장 (다음 스텝)
 
 | 추가할 것 | 왜 |
 |----------|-----|

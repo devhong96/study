@@ -47,6 +47,15 @@
 > **"커밋"** 하면 그날 공부한 주제를 여기 기록한다. 최신 날짜가 위.
 > 형식: `### YYYY-MM-DD:주제` (날짜와 주제는 콜론으로 붙임, 공백 없이) → 그 아래 `- 소주제`. (규칙은 [`../AGENTS.md`](../AGENTS.md) 5장)
 
+### 2026-06-21:테라폼 실습 코드 분석 (01~05)
+- 리소스 블록 해부: ①타입(provider 고정) ②논리명(자유) ③속성이름(고정)·값(자유), provider 스키마와 대조
+- 자동 의존성 심화: 참조가 순서를 만듦(DAG), image_id=computed(plan은 `known after apply`→apply 확정)
+- dynamic 부품 4개(컨테이너 1개, 블록만 반복) / var(밖에서 주입)·local(안에서) 차이·주입 우선순위
+- count(순번키→index drift 재생성) vs for_each(키 기반 안전), splat `[*]` / for식
+- module=함수(정의=틀, 호출=root), image_id 주입=의존성주입, `this` 논리명
+- 05 파일분리 관례, data(조회=SELECT, plan 시점) vs resource, security group(보안 먼저), user_data, credential chain
+- 01~05 main.tf 전체 주석 보강 / 오타 실험: `docker_imge`=Invalid resource type(validate) vs 이미지이름 오타=apply pull 실패
+
 ### 2026-06-20:테라폼 기초와 큰 그림
 - 선언형·멱등 + tfstate(장부): 코드↔state↔실제 인프라 세 가지 일치가 전부
 - 블록 6종(terraform/provider/variable/data/resource/output) + 사이클(init/plan/apply/destroy)
