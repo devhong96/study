@@ -18,6 +18,7 @@
 | `distributed/` | 분산 시스템 (분산 락·합의·CAP·일관성) | distributed-lock-and-consensus |
 | `architecture/` | 설계·아키텍처 패턴 | saga-pattern |
 | `deployment/` | 배포 전략·운영·릴리스 | deploy-strategy, deployment-version-gap |
+| `infrastructure/` | IaC·인프라 자동화 (Terraform 등) | terraform-fundamentals |
 | `etc/` | 분류 전 임시 / 잡다 (CS 기초·인코딩 등) | base64 |
 
 ## 앞으로 늘어날 만한 폴더 (백엔드)
@@ -45,6 +46,16 @@
 
 > **"커밋"** 하면 그날 공부한 주제를 여기 기록한다. 최신 날짜가 위.
 > 형식: `### YYYY-MM-DD:주제` (날짜와 주제는 콜론으로 붙임, 공백 없이) → 그 아래 `- 소주제`. (규칙은 [`../AGENTS.md`](../AGENTS.md) 5장)
+
+### 2026-06-20:테라폼 기초와 큰 그림
+- 선언형·멱등 + tfstate(장부): 코드↔state↔실제 인프라 세 가지 일치가 전부
+- 블록 6종(terraform/provider/variable/data/resource/output) + 사이클(init/plan/apply/destroy)
+- 자동 의존성: 참조(`타입.이름.속성`)가 순서를 세움 → DAG 위상정렬·병렬, computed attribute(image_id), 명령형 vs 선언형
+- 점진 누적 01→05: 정적→변수→반복(count vs for_each, index drift)→module(함수)→data 조회+클라우드
+- 버전 제약 `~>`: 오른쪽 끝 자리까지만 증가 허용(`~>3.0`=3.x, `~>3.0.0`=3.0.x), required_version은 CLI 버전
+- provider credential chain: 코드 직접<환경변수<~/.aws<IAM Role(키 없는 임시자격증명, 실무 권장)
+- data(조회, destroy 안 됨) vs resource(생성·삭제 소유)
+- 01-hello/main.tf에 required_version 추가
 
 ### 2026-06-19:인덱스의 랜덤 I/O와 커버링
 - 순차 vs 랜덤 읽기: 페이지 단위 I/O, random은 흩어진 페이지 점프라 비쌈(대략 ×4 추정치)

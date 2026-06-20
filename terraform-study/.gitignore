@@ -1,0 +1,12 @@
+# Terraform 산출물 — 커밋하지 않음
+.terraform/
+*.tfstate
+*.tfstate.*
+.terraform.tfstate.lock.info
+crash.log
+crash.*.log
+
+# .terraform.lock.hcl 은 버전 고정을 위해 일부러 커밋한다 (ignore 안 함)
+
+# IDE
+.idea/
