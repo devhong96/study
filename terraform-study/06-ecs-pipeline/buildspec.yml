@@ -1,0 +1,29 @@
+# CodeBuild 빌드 명세 — 이 파일은 "앱 저장소(github_repo)"의 루트에 둔다.
+# (테라폼이 만드는 게 아니라, 빌드되는 애플리케이션 코드에 함께 있는 파일)
+# 역할: 도커 이미지 빌드 → ECR push → ECS 배포용 imagedefinitions.json 생성
+version: 0.2
+
+phases:
+  pre_build:
+    commands:
+      - echo "Logging in to Amazon ECR..."
+      - REGISTRY=$(echo $ECR_REPO | cut -d/ -f1)
+      - aws ecr get-login-password --region $AWS_REGION | docker login --username AWS --password-stdin $REGISTRY
+      # git commit SHA를 이미지 태그로 (불변 태그 = 어떤 커밋인지 추적 가능)
+      - IMAGE_TAG=${CODEBUILD_RESOLVED_SOURCE_VERSION:-latest}
+  build:
+    commands:
+      - echo "Building image..."
+      - docker build -t $ECR_REPO:$IMAGE_TAG .
+      - docker tag $ECR_REPO:$IMAGE_TAG $ECR_REPO:latest
+  post_build:
+    commands:
+      - echo "Pushing to ECR..."
+      - docker push $ECR_REPO:$IMAGE_TAG
+      - docker push $ECR_REPO:latest
+      # ECS Deploy 단계가 읽을 파일: "이 컨테이너를 이 이미지로 바꿔라"
+      - printf '[{"name":"%s","imageUri":"%s"}]' "$CONTAINER_NAME" "$ECR_REPO:$IMAGE_TAG" > imagedefinitions.json
+
+artifacts:
+  files:
+    - imagedefinitions.json
