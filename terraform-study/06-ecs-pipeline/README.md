@@ -24,18 +24,22 @@
 
 ## 파일 구성 (관심사별 분리)
 
-| 파일 | 그림의 박스 | 핵심 리소스 |
-|------|------------|-------------|
-| `provider.tf` | — | provider, 계정 조회 |
-| `variables.tf` / `terraform.tfvars` | — | 입력값 |
-| `network.tf` | (네트워크) | default VPC 조회, 보안그룹 2개(ALB/ECS) |
-| `ecr.tf` | **ECR** | `aws_ecr_repository` |
-| `alb.tf` | **ALB** | LB + Target Group + Listener |
-| `iam.tf` | (권한) | ECS/CodeBuild/CodePipeline Role |
-| `ecs.tf` | **ECS** | Cluster + Task Definition + Service |
-| `pipeline.tf` | **CodeBuild/CodePipeline** | S3, GitHub 연결, 빌드, 파이프라인 |
-| `outputs.tf` | — | ALB URL, ECR URL 등 |
-| `buildspec.yml` | (앱 저장소에 둘 파일) | 도커 빌드 명세 |
+> 파일명 앞 번호는 **읽는 순서**(토대 → 앱 → 자동화)일 뿐, 테라폼은 폴더 안 `.tf`를 다 합쳐 읽으므로 실행 순서와는 무관(실제 순서는 참조 의존성이 자동 결정).
+
+| # | 파일 | 그림의 박스 | 핵심 리소스 |
+|---|------|------------|-------------|
+| 1 | `1-provider.tf` | (접속) | provider, 계정 조회 |
+| 2 | `2-variables.tf` / `terraform.tfvars` | (입력) | 입력값 정의 / 값 주입 |
+| 3 | `3-network.tf` | (네트워크) | default VPC 조회, 보안그룹 2개(ALB/ECS) |
+| 4 | `4-ecr.tf` | **ECR** | `aws_ecr_repository` |
+| 5 | `5-iam.tf` | (권한) | ECS/CodeBuild/CodePipeline Role |
+| 6 | `6-alb.tf` | **ALB** | LB + Target Group + Listener |
+| 7 | `7-ecs.tf` | **ECS** | Cluster + Task Definition + Service |
+| 8 | `8-pipeline.tf` | **CodeBuild/CodePipeline** | S3, GitHub 연결, 빌드, 파이프라인 |
+| 9 | `9-outputs.tf` | (결과) | ALB URL, ECR URL 등 |
+| — | `buildspec.yml` | (앱 저장소에 둘 파일) | 도커 빌드 명세 (테라폼 아님) |
+
+**왜 이 순서?** 1·2는 접속·입력 준비 → 3 네트워크가 모든 것의 토대 → 4 이미지 저장소 → 5 권한(여러 서비스가 참조) → 6·7 로드밸런서·실행(앱 본체) → 8 그 위에 CI/CD 자동화 → 9 결과 노출.
 
 ## 참조 = 설계 순서
 

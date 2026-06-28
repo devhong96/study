@@ -47,6 +47,14 @@
 > **"커밋"** 하면 그날 공부한 주제를 여기 기록한다. 최신 날짜가 위.
 > 형식: `### YYYY-MM-DD:주제` (날짜와 주제는 콜론으로 붙임, 공백 없이) → 그 아래 `- 소주제`. (규칙은 [`../AGENTS.md`](../AGENTS.md) 5장)
 
+### 2026-06-29:모듈·멀티환경·원격state(07) + IaC 범위와 경계
+- 07 신규: modules/webserver + envs/dev·prod + S3 backend(use_lockfile) — 재사용·환경분리·원격state, dev/prod validate 통과
+- 05/06 파일에 흐름 번호 접두사(1-provider…) — 파일명은 동작 무관(리소스 주소로 참조, 폴더 통째로 읽음). 단 terraform.tfvars는 고정 이름이라 제외
+- IaC 범위: 거의 모든 AWS 서비스(EKS/ElastiCache/RDS/Lambda…)가 같은 `resource` 패턴
+- IaC 경계: 프로비저닝(생성·구성=Terraform) vs 앱배포(CI/CD)·운영(CloudWatch)·데이터·K8s워크로드(Helm/ArgoCD) 역할분담
+- 콘솔 수동변경=drift → plan이 감지, `terraform import`로 흡수, `ManagedBy` 태그
+- 노트: [iac-scope-and-boundaries](../infrastructure/iac-scope-and-boundaries.md)
+
 ### 2026-06-29:테라폼 05 EC2 심화 + 예약어 구분 + ECS 파이프라인
 - 계정 연결: `aws configure` → `~/.aws/credentials`, 코드엔 region만(키 분리), credential chain
 - variables.tf(빈칸 정의) vs terraform.tfvars(값 주입): 같은 코드+다른 tfvars=환경 복제, tfvars가 default 덮어씀
