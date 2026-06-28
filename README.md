@@ -47,6 +47,14 @@
 > **"커밋"** 하면 그날 공부한 주제를 여기 기록한다. 최신 날짜가 위.
 > 형식: `### YYYY-MM-DD:주제` (날짜와 주제는 콜론으로 붙임, 공백 없이) → 그 아래 `- 소주제`. (규칙은 [`../AGENTS.md`](../AGENTS.md) 5장)
 
+### 2026-06-29:테라폼 05 EC2 심화 + 예약어 구분 + ECS 파이프라인
+- 계정 연결: `aws configure` → `~/.aws/credentials`, 코드엔 region만(키 분리), credential chain
+- variables.tf(빈칸 정의) vs terraform.tfvars(값 주입): 같은 코드+다른 tfvars=환경 복제, tfvars가 default 덮어씀
+- 예약어(🔒) vs 자유(✏️) 판별: 블록키워드·타입(첫 따옴표)·=왼쪽 칸·string/true/var/data=고정 / 두번째 따옴표 별명·=오른쪽 값·tags 키=자유 ("바꿔도 알아들으면 ✏️, 에러나면 🔒")
+- 01~05 main.tf에 🔒/✏️ 인라인 주석 / heredoc 시작줄(`<<-EOF`)엔 주석 못 붙임(validate가 잡아냄)
+- data 조회(AMI=OS이미지, VPC=네트워크) / security group(ingress·egress, 포트, cidr, SSH는 내 IP만·HTTP 전체=최소권한)
+- 06 신규: ECS CI/CD 파이프라인(CodePipeline→CodeBuild→ECR→ECS→ALB)을 테라폼으로 작성 + validate 통과
+
 ### 2026-06-23:인덱스 랜덤 I/O·풀스캔 개념 재정리 (문답)
 - 랜덤 I/O 근원 재확인: 보조 인덱스 leaf=(컬럼값+PK) 컬럼순 vs 테이블 PK순 → 2번 탐색 때 점프. 느린 건 ②테이블 재방문(① 인덱스 탐색은 email순 정렬이라 순차·빠름)
 - "인덱스를 PK순으로 정렬하면?" → email 검색이 풀스캔 돼 인덱스 의미 상실. **한 데이터는 한 순서로만 정렬 가능**(트레이드오프). 인덱스 전체 ≠ 이번 쿼리 결과 PK만 재정렬=MRR
