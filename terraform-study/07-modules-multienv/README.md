@@ -7,20 +7,22 @@
 ```
 07-modules-multienv/
 ├── modules/
-│   └── webserver/        ← 재사용 "틀" (05의 EC2+보안그룹을 모듈화)
-│       ├── versions.tf   provider 요구사항
-│       ├── variables.tf  입력(빈칸)
-│       ├── main.tf       data·보안그룹·EC2
-│       └── outputs.tf    출력(public_ip 등)
+│   └── webserver/          ← 재사용 "틀" (05의 EC2+보안그룹을 모듈화)
+│       ├── 1-versions.tf   provider 요구사항
+│       ├── 2-variables.tf  입력(빈칸)
+│       ├── 3-main.tf       data·보안그룹·EC2
+│       └── 4-outputs.tf    출력(public_ip 등)
 └── envs/
-    ├── dev/              ← dev 환경 (루트 모듈, 별도 state)
-    │   ├── provider.tf
-    │   ├── backend.tf    S3 원격 state (key: envs/dev/...)
-    │   ├── main.tf       module "web" 호출 (t3.micro)
-    │   ├── variables.tf
-    │   └── terraform.tfvars
-    └── prod/             ← prod 환경 (같은 모듈, t3.small, key만 다름)
-        └── (dev와 동일 구조)
+    ├── dev/                ← dev 환경 (루트 모듈, 별도 state)
+    │   ├── 1-provider.tf
+    │   ├── 2-backend.tf    S3 원격 state (key: envs/dev/...)
+    │   ├── 3-variables.tf
+    │   ├── 4-main.tf       module "web" 호출 (t3.micro)
+    │   └── terraform.tfvars  (고정 이름 — 번호 제외)
+    └── prod/               ← prod 환경 (같은 모듈, t3.small, key만 다름)
+        └── (dev와 동일 구조: 1-provider · 2-backend · 3-variables · 4-main)
+
+# 파일명 앞 번호 = 읽는 순서일 뿐. 테라폼은 폴더 내 .tf를 다 합쳐 읽어 순서 무관.
 ```
 
 ## 핵심 3가지

@@ -2,10 +2,6 @@
 
 > **한 줄 정의:** 일반 View는 *"이름이 붙은 저장된 SELECT 문(가상 테이블)"*일 뿐, **성능 최적화가 아니라 추상화·보안·편의성**을 위한 기능이다. 진짜 최적화는 결과를 디스크에 저장하는 **Materialized View(구체화 뷰)**가 담당한다.
 
-> 관련 문서:
-> - [db-index.md](db-index.md) — 진짜 조회 가속은 인덱스가 한다 (View는 인덱스가 아님)
-> - [index-random-io-and-covering.md](index-random-io-and-covering.md) — 무거운 조회 최적화의 정공법
-> - [transaction-and-isolation.md](transaction-and-isolation.md) — Materialized View의 최신성(REFRESH)과 연관
 
 ---
 
@@ -138,7 +134,7 @@ REFRESH MATERIALIZED VIEW CONCURRENTLY mv; -- 갱신 중에도 조회 가능 (UN
 - `WITH CHECK OPTION` — 뷰 조건을 벗어나는 행이 INSERT/UPDATE 되는 것을 막는다.
 
 ### 4-2. View와 인덱스
-- 일반 View 자체에는 인덱스를 못 건다(데이터가 없으니까). 성능은 **원본 테이블의 인덱스**가 결정한다 → [db-index.md](db-index.md).
+- 일반 View 자체에는 인덱스를 못 건다(데이터가 없으니까). 성능은 **원본 테이블의 인덱스**가 결정한다
 - Materialized View는 실제 데이터가 있으므로 **인덱스를 걸 수 있다**.
 - (SQL Server의 *Indexed View*, Oracle의 *Materialized View*가 사실상 같은 개념.)
 
