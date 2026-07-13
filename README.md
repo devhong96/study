@@ -13,7 +13,7 @@
 | `java/` | 자바 언어 기능·문법 | java-generics |
 | `spring/` | 스프링 프레임워크 (DI·AOP·트랜잭션·비동기 등) | spring-async-event-listener, transactional-deep-dive |
 | `jpa/` | JPA·ORM (영속성 컨텍스트·N+1·OSIV·성능) | persistence-context-and-n-plus-one, second-level-cache, em-threadlocal-transaction, association-mapping-owner, optimistic-pessimistic-lock |
-| `internals/` | OS·동시성·JVM 내부 (프로세스/스레드/메모리/스레드풀/힙) — 서로 촘촘히 링크됨 | process-thread-basics, process-thread-memory, thread-pool, multicore-memory, jvm-heap-metaspace, sync-async-blocking-nonblocking |
+| `internals/` | OS·동시성·JVM 내부 (프로세스/스레드/메모리/스레드풀/힙) — 서로 촘촘히 링크됨 | process-thread-basics, process-thread-memory, thread-pool, multicore-memory, jvm-heap-metaspace, sync-async-blocking-nonblocking, context-switching |
 | `database/` | RDB·트랜잭션·격리수준·락·쿼리 | transaction-and-isolation, db-index, index-random-io-and-covering |
 | `distributed/` | 분산 시스템 (분산 락·합의·CAP·일관성) | distributed-lock-and-consensus |
 | `architecture/` | 설계·아키텍처 패턴 | saga-pattern |
@@ -46,6 +46,15 @@
 
 > **"커밋"** 하면 그날 공부한 주제를 여기 기록한다. 최신 날짜가 위.
 > 형식: `### YYYY-MM-DD:주제` (날짜와 주제는 콜론으로 붙임, 공백 없이) → 그 아래 `- 소주제`. (규칙은 [`../AGENTS.md`](../AGENTS.md) 5장)
+
+### 2026-07-14:컨텍스트 스위칭
+- 왜 존재? 코어(자리) 유한 vs 시분할(시간 쪼개기) — "일의 전이 ❌, 자리의 교대 ⭕"
+- 트리거 2갈래: 비자발적(타이머 인터럽트·우선순위 선점) / 자발적(I/O·락 대기·yield)
+- 상태 머신 Running↔Ready↔Blocked. 내려간 스레드 = 레지스터 세트 전체를 메모리 TCB/PCB에 저장 (PC는 저장 '대상'이지 '장소' 아님)
+- 비용 4겹: ①레지스터 ②커널·스케줄러 ③(프로세스만)주소공간+TLB flush ④캐시 오염(숨은 최대). 스레드 전환이 싼 건 ③④를 건너뜀 / PCID·ASID로 TLB flush 완화
+- 비동기: 작업(task)전환 ≠ 컨텍스트 스위칭. 이벤트 루프 1스레드로 다중 I/O → OS CS 극소(0 아님: epoll_wait 블로킹·타이머 선점). 가상 스레드도 유저공간 park
+- 곁가지: 스핀락(busy-wait, CS 회피) vs 블로킹락/Redisson pub/sub — 폴링 vs 알림
+- 노트: [context-switching](../internals/context-switching.md)
 
 ### 2026-06-29:모듈·멀티환경·원격state(07) + IaC 범위와 경계
 - 07 신규: modules/webserver + envs/dev·prod + S3 backend(use_lockfile) — 재사용·환경분리·원격state, dev/prod validate 통과

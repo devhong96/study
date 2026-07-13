@@ -7,6 +7,7 @@ OS 메모리 관리 전반 정리. 프로세스/스레드 메모리 구조부터
 > - [thread-pool.md](./thread-pool.md) - 스레드 풀 운영과 가상 메모리 관점
 > - [multicore-memory.md](./multicore-memory.md) - 멀티코어 CPU 에서의 가상 메모리, 캐시 일관성, NUMA
 > - [jvm-heap-metaspace.md](./jvm-heap-metaspace.md) - JVM Heap, Metaspace, Klass 와 실행 흐름
+> - [context-switching.md](./context-switching.md) - 컨텍스트 스위칭 (TLB flush·주소공간 교체가 프로세스 전환을 비싸게 하는 이유)
 
 ---
 

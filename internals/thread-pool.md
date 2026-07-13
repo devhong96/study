@@ -6,6 +6,7 @@
 > 관련 문서:
 > - [process-thread-memory.md](./process-thread-memory.md) - 프로세스/스레드 메모리 구조와 가상 메모리
 > - [multicore-memory.md](./multicore-memory.md) - 멀티코어 환경에서 스레드 풀과 캐시 일관성
+> - [context-switching.md](./context-switching.md) - 스레드 과다 시 컨텍스트 스위칭 누적 비용 (자발/비자발 CS, 최적 풀 크기)
 
 ---
 
