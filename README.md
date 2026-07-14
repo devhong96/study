@@ -54,6 +54,7 @@
 - 비용 4겹: ①레지스터 ②커널·스케줄러 ③(프로세스만)주소공간+TLB flush ④캐시 오염(숨은 최대). 스레드 전환이 싼 건 ③④를 건너뜀 / PCID·ASID로 TLB flush 완화
 - 비동기: 작업(task)전환 ≠ 컨텍스트 스위칭. 이벤트 루프 1스레드로 다중 I/O → OS CS 극소(0 아님: epoll_wait 블로킹·타이머 선점). 가상 스레드도 유저공간 park
 - 곁가지: 스핀락(busy-wait, CS 회피) vs 블로킹락/Redisson pub/sub — 폴링 vs 알림
+- 모드 전환(syscall) vs CS: 모드 전환=같은 스레드 권한 up/down(TLB·캐시 그대로, ~수백ns) / CS=스레드 교체(~1μs+). syscall 자체는 CS 아님(블로킹일 때만 CS 유발). KPTI로 syscall 비싸짐
 - 노트: [context-switching](../internals/context-switching.md)
 
 ### 2026-06-29:모듈·멀티환경·원격state(07) + IaC 범위와 경계
