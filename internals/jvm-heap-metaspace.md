@@ -1718,3 +1718,17 @@ Minor GC 시작
 **JVM 프로세스 시작 (영역 예약) → 시스템 클래스 로드 (Klass + Class 미러) → 사용자 클래스 로드 → main 스택 프레임 → new (Heap 할당 + klass ptr 세팅) → 메서드 호출 (klass ptr → Klass → vtable → 코드) → JIT 컴파일 (Code Cache) → GC (Klass 정보 보고 객체 추적) → 종료/언로드**
 
 이 흐름 한 번이 머릿속에 박히면, 나중에 OOM, ClassCastException, NoSuchMethodError, JIT warmup, GC 튜닝 같은 실전 문제 마주쳤을 때 "어느 영역에서 일어난 일인가" 를 바로 짚을 수 있어진다.
+
+---
+
+## ❓ 남은 질문
+
+1. Metaspace OOM 이 나는데 애플리케이션의 "고유 클래스 수" 는 그대로라면 무엇을 의심해야 하나?
+
+   → **답:** ClassLoader 누수다. Metaspace 의 Klass 는 그것을 로드한 ClassLoader 가 GC 될 때만 회수되므로, 핫 리로드나 동적 프록시(CGLIB·Groovy 등)로 같은 클래스가 새 ClassLoader 로 계속 다시 로드되면 옛 Klass 가 안 풀려 무한 증가한다.
+2. `-XX:MaxMetaspaceSize` 를 안 걸어 사실상 무제한인데, 그러면 Metaspace 관련 GC 는 대체 언제 트리거되나?
+
+   → **답:** `-XX:MetaspaceSize`(초기 high-water mark)에 도달하면 클래스 언로드를 시도하는 GC 가 유발된다. 회수 결과에 따라 이 임계값이 다음 번엔 상향(또는 하향)되므로, MaxMetaspaceSize 가 없어도 이 임계값 메커니즘으로 주기적 정리는 돈다.
+3. `OutOfMemoryError: Compressed class space` 와 `OutOfMemoryError: Metaspace` 는 어떻게 다른가?
+
+   → **답:** Compressed Class Space 는 압축된 klass 포인터로 가리킬 수 있게 별도로 잡는 영역(기본 상한 1G)이고, Klass 본체 외 나머지 메타데이터는 일반 Metaspace 에 들어간다. 클래스가 매우 많으면 Metaspace 에 여유가 있어도 이 1G 가 먼저 차서 전자가 뜬다 — `-XX:CompressedClassSpaceSize` 로 조정한다.

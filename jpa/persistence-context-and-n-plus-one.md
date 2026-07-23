@@ -105,3 +105,15 @@ JPQL `select t from Team`은 SQL로 그대로 번역돼 **팀만 먼저** 가져
 > - **IDENTITY 전략은 batch insert 불가** — 식별자 전략과 성능
 > - **DTO Projection / Querydsl**, **2차 캐시(Second-Level Cache)**
 > - **OSIV** — open-in-view 트레이드오프
+
+> ## ❓ 남은 질문
+>
+> 1. `default_batch_fetch_size`로 N+1을 IN절로 묶을 때, 부모가 배치 크기보다 많으면?
+>
+>    → **답:** 배치 크기 단위로 끊어 **여러 개의 IN 쿼리로 나눠** 실행한다(부모 100개·배치 10이면 IN 쿼리 10번). 값이 너무 크면 IN 파라미터 증가로 파싱/실행계획 부담이 커져 보통 100~1000 범위로 둔다.
+> 2. 컬렉션을 유지하면서 부모 기준 페이징을 정상 동작시키려면?
+>
+>    → **답:** ToOne만 fetch join하고 **컬렉션은 fetch join하지 말고 batch size로 지연로딩**한다. 그러면 컬렉션 조인에 의한 row 뻥튀기가 없어 DB의 limit/offset이 부모 기준으로 정확히 먹는다(정석 패턴).
+> 3. 영속 상태인데도 변경 감지(dirty checking) UPDATE가 안 나가는 경우는?
+>
+>    → **답:** `readOnly=true`면 FlushMode가 MANUAL이 되어 커밋 시 자동 flush가 생략되고 스냅샷 비교도 안 돌아 UPDATE가 나가지 않는다. (준영속/비영속은 애초에 감지 대상이 아님.)

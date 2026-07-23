@@ -229,3 +229,17 @@ public void sendEmail(OrderPlacedEvent e) { ... }
 - `@Async`와 `@Transactional` 모두 **프록시 기반** → 같은 클래스 내부 호출(self-invocation)에서는 동작 안 함.
 - `@Async`는 `@EnableAsync` 필요. `@TransactionalEventListener`는 별도 활성화 어노테이션 불필요(자동).
 - `@Async` void 메서드의 예외는 호출자에게 전파되지 않음 → `AsyncUncaughtExceptionHandler`로 로깅.
+
+---
+
+## ❓ 남은 질문
+
+1. bounded `ThreadPoolTaskExecutor`에서 코어·맥스 스레드가 다 차고 큐까지 가득 차면 `@Async` 호출은 어떻게 되나?
+
+   → **답:** 거부 정책(`RejectedExecutionHandler`)을 따른다. 기본은 `AbortPolicy`라 `TaskRejectedException`을 던지고, `CallerRunsPolicy`로 바꾸면 호출 스레드가 직접 실행해 자연스러운 백프레셔가 걸린다.
+2. `@Async` 새 스레드에는 트랜잭션·MDC 등 컨텍스트가 전파 안 된다는데, MDC 로깅값을 넘기고 싶으면?
+
+   → **답:** `ThreadPoolTaskExecutor`에 `TaskDecorator`를 등록해 제출 시점의 MDC를 새 스레드로 복사한다. 반면 트랜잭션은 스레드 바운드라 전파되지 않으며 전파해서도 안 된다(각 스레드가 자기 트랜잭션을 가짐).
+3. `@Async` + `@TransactionalEventListener`(AFTER_COMMIT)를 함께 쓰면, "커밋됐는지" 판정은 어느 스레드에서 일어나나?
+
+   → **답:** 트랜잭션 동기화 등록과 커밋 판정은 발행자 스레드에서 이뤄지고, 커밋이 확인된 뒤에야 리스너 본문 실행만 별도 스레드로 넘어간다. 롤백되면 애초에 async 작업이 제출되지 않는다.

@@ -404,6 +404,20 @@ NUMA 노드 = (대규모 시) RAM 도 노드별 분리
 > 다만 TLB, L1/L2 캐시가 코어마다 따로라서 **TLB Shootdown / Cache Coherence / False Sharing / NUMA / Memory Visibility** 라는 새로운 비용들이 추가된다.
 > 동시성 코드의 진짜 비싼 부분은 락 자체가 아니라 이 캐시 일관성 트래픽인 경우가 많다.
 
+---
+
+## ❓ 남은 질문
+
+1. MESI 로 캐시 일관성이 하드웨어에서 보장되는데, 왜 여전히 `volatile` 이 필요한가?
+
+   → **답:** MESI 는 캐시 간 값 일관성만 유지할 뿐, store buffer 지연과 컴파일러·JIT 의 reordering·레지스터 캐싱까지는 막지 못한다. `volatile` 은 메모리 배리어로 그 소프트웨어 레벨 가시성·순서를 강제한다.
+2. `volatile long counter` 로 `counter++` 의 경쟁을 해결할 수 있나?
+
+   → **답:** 못 한다. `volatile` 은 가시성과 순서만 보장하고 read-modify-write 의 원자성은 보장하지 않아 `counter++` 는 여전히 race 다. `AtomicLong` 이나 `synchronized` 가 필요하다.
+3. 고경합 카운터에서 `LongAdder` 가 단일 `AtomicLong` 보다 빠른 이유는?
+
+   → **답:** 스레드별로 분산된 셀(내부 `Cell`, 패딩되어 false sharing 회피)에 나눠 더해 단일 값에 몰리는 CAS 핑퐁·캐시 라인 경쟁을 줄인다. 최종 값은 `sum()` 으로 합산한다.
+
 ### 실무 체크리스트
 - [ ] 공유 변수를 최소화하고 있는가? (스레드 로컬 우선)
 - [ ] 핫한 카운터에 false sharing 가능성은 없는가? (`LongAdder` 검토)

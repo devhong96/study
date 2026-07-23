@@ -491,3 +491,17 @@ try {
 
 > **스레드 풀의 모든 설정은 결국 "공유 가상 주소 공간을 어떻게 효율적으로/안전하게 나눠 쓸 것인가" 의 문제다.**
 > Heap 은 공유라서 race condition / OOM 위험, Stack 은 스레드마다 가상 주소 영역을 따로 먹으니 풀 크기에 비례해 메모리 사용량 증가.
+
+---
+
+## ❓ 남은 질문
+
+1. `queueCapacity` 를 0(`SynchronousQueue`)으로 두면 흐름이 어떻게 달라지나?
+
+   → **답:** 큐에 쌓지 않고 곧바로 스레드에 넘기려 시도하며, 여유 스레드가 없으면 max 까지 즉시 스레드를 늘리고 그마저 차면 바로 거부한다. `Executors.newCachedThreadPool` 이 이 방식이다.
+2. `CallerRunsPolicy` 인데 풀(executor)이 이미 `shutdown` 된 상태에서 작업이 거부되면?
+
+   → **답:** 호출 스레드에서 실행하지 않고 그 작업을 조용히 버린다. shutdown 중 backpressure 를 기대하다 유실이 생기는 함정이다.
+3. 스프링 `@Async` 메서드가 `void` 를 반환할 때 내부에서 던진 예외는 어디로 가나?
+
+   → **답:** 호출자에게 전파되지 않고 `AsyncUncaughtExceptionHandler` 로 넘어간다(미설정 시 로그만 남음). `Future`/`CompletableFuture` 반환이면 `get()` 호출 시점에 전파된다.

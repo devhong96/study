@@ -145,3 +145,17 @@ REFRESH MATERIALIZED VIEW CONCURRENTLY mv; -- 갱신 중에도 조회 가능 (UN
 - **일반 View** = 저장된 쿼리. 최적화 ❌, 추상화·보안·편의성 ⭕
 - **Materialized View** = 결과를 실제 저장. 최적화 ⭕, 대신 REFRESH(갱신) 필요
 - View는 원본 테이블 구조에 **강하게 종속**된다.
+
+---
+
+## ❓ 남은 질문
+
+1. `REFRESH MATERIALIZED VIEW CONCURRENTLY`가 UNIQUE 인덱스를 요구하는 이유는?
+
+   → **답:** CONCURRENTLY는 전체 락을 걸지 않으려고 새 결과와 기존 MV를 **행 단위로 diff해 변경분만 반영**하는데, 각 행을 유일하게 식별할 UNIQUE 인덱스가 있어야 어떤 행을 UPDATE/DELETE/INSERT할지 판별할 수 있기 때문. (PostgreSQL 공식 문서)
+2. 일반 View는 인덱스를 못 거는데, 뷰 조회가 느리면 무엇을 튜닝하나?
+
+   → **답:** 원본 테이블의 인덱스·통계를 손본다. 뷰 조회는 원본 쿼리로 rewrite되어 실행되므로 옵티마이저가 **원본 테이블/인덱스 기준**으로 실행계획을 세운다.
+3. MySQL은 Materialized View 문법이 없는데 같은 효과를 내려면?
+
+   → **답:** 집계 결과를 담는 **요약 테이블(summary table)**을 직접 만들고, 스케줄러·트리거·배치로 주기 갱신한다. MV의 REFRESH를 애플리케이션 레벨에서 수동 구현하는 셈.
