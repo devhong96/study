@@ -10,6 +10,7 @@
 ## 2026
 
 ### 2026-07
+- **07-24 · 노트 남은 질문 전면 보강 + 문서 3분할** — 남은 질문 있던 15개 노트에 1~2줄 답 달기(46개)+섹션 없던 16개 노트에 심화 질문 신설(47개), verifier 반박식 검수로 5건 정정. 곁가지 정정: readOnly=true는 CPU만 절감(스냅샷 유지→메모리 절감은 Hibernate read-only 모드 별도), ZooKeeper ephemeral znode vs etcd lease, 백필(DML)≠gh-ost·pt-osc(DDL). 문서: README를 인덱스로 슬림화하고 LOG·CONVENTIONS 분리.
 - **07-22 · DB 옵티마이저 판단 기준** — 비용기반(통계로 최저비용 계획 선택), 인덱스는 매칭 row 비율(보조인덱스 랜덤 재방문 vs 풀스캔 순차, ~20-25% 역전), 조인순서=중간결과 최소화(driving 테이블 작게), 통계 stale→오판·EXPLAIN으로 예상 vs 실제 대조. [노트](<back/260722 DB optimizer는 어떤 기준으로 index 사용 여부와 join 순서를 결정하나요.md>)
 - **07-21 · Backpressure 미적용 장애** — 흐름제어 없는 큐(λ>μ→무한증가), OOM→스레드/커넥션 고갈→latency·timeout→retry storm→연쇄장애, Reactive Streams request(n)·rate limit(open loop) vs backpressure(closed loop). [노트](<back/260721 Backpressure를 적용하지 않으면 어떤 장애가 발생할 수 있나요.md>)
 - **07-21 · JPA vs MyBatis** — SQL Mapper(직접 SQL·예측100%) vs ORM 명세(SQL 자동생성·영속성 컨텍스트). 갈림길은 도메인 복잡도(→JPA) vs 쿼리 복잡도(→MyBatis), 쓰기=JPA·읽기=MyBatis 혼용도 정당. 성능은 둘 다 JDBC 위라 간판으론 안 갈림. [노트](jpa/jpa-vs-mybatis.md)
