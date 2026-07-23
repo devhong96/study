@@ -136,9 +136,14 @@ Spring은 현재 트랜잭션(커넥션, 동기화 상태)을 `TransactionSynchr
 - Spring Boot 공식 문서 — spring.task.execution.* 프로퍼티 (기본 Executor 설정)
 
 ### ❓ 더 파볼 질문
-- **AFTER_COMMIT 리스너 안에서 DB를 변경하려면 왜 REQUIRES_NEW가 필요한가?**
-  ↳ AFTER_COMMIT 시점에는 원래 트랜잭션이 이미 커밋을 마친 상태라, 리스너가 기본 전파(REQUIRED)로 그 트랜잭션 리소스에 참여해도 추가 변경이 커밋될 기회가 없다. 그래서 리스너에서 DB 쓰기를 하려면 REQUIRES_NEW로 새 트랜잭션을 열어야 확실히 반영된다(거의 확실 — Spring 문서에 명시된 주의사항).
-- **CompletableFuture에서 예외는 어떤 경로로 전파되나?**
-  ↳ 예외는 future 객체 안에 저장되고, get()은 ExecutionException으로, join()은 CompletionException으로 감싸 던진다. 아무도 결과를 조회하지 않으면 예외는 어디에도 나타나지 않으므로, exceptionally()/handle()로 처리 경로를 명시하는 것이 안전하다.
-- **AFTER_COMMIT + @Async 조합도 서버가 죽으면 유실되는데, 유실 불가 요건은 어떻게 푸나?**
-  ↳ 이벤트를 메모리로 넘기지 말고 Outbox 테이블에 남기는 것으로 바꾼다. 커밋과 함께 DB에 기록이 남으므로 서버가 죽어도 릴레이가 재기동 후 이어서 발행한다 — "커밋 후 실행"과 "유실 불가"를 동시에 만족하는 조합은 사실상 Outbox뿐이다.
+**Q. AFTER_COMMIT 리스너 안에서 DB를 변경하려면 왜 REQUIRES_NEW가 필요한가?**
+
+**A.** AFTER_COMMIT 시점에는 원래 트랜잭션이 이미 커밋을 마친 상태라, 리스너가 기본 전파(REQUIRED)로 그 트랜잭션 리소스에 참여해도 추가 변경이 커밋될 기회가 없다. 그래서 리스너에서 DB 쓰기를 하려면 REQUIRES_NEW로 새 트랜잭션을 열어야 확실히 반영된다(메커니즘은 거의 확실 — 출처 귀속은 확실치 않음).
+
+**Q. CompletableFuture에서 예외는 어떤 경로로 전파되나?**
+
+**A.** 예외는 future 객체 안에 저장되고, get()은 ExecutionException으로, join()은 CompletionException으로 감싸 던진다. 아무도 결과를 조회하지 않으면 예외는 어디에도 나타나지 않으므로, exceptionally()/handle()로 처리 경로를 명시하는 것이 안전하다.
+
+**Q. AFTER_COMMIT + @Async 조합도 서버가 죽으면 유실되는데, 유실 불가 요건은 어떻게 푸나?**
+
+**A.** 이벤트를 메모리로 넘기지 말고 Outbox 테이블에 남기는 것으로 바꾼다. 커밋과 함께 DB에 기록이 남으므로 서버가 죽어도 릴레이가 재기동 후 이어서 발행한다 — "커밋 후 실행"과 "유실 불가"를 동시에 만족하는 조합은 사실상 Outbox뿐이다.

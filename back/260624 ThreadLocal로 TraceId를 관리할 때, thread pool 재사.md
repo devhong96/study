@@ -129,7 +129,7 @@ reactive 파이프라인은 하나의 요청이 이벤트 루프와 스케줄러
 - **TaskDecorator** — 스프링에서 Executor에 컨텍스트 복사 로직을 끼워 넣는 표준 지점
 - **Micrometer Tracing (구 Spring Cloud Sleuth)** — traceId 생성·전파를 프레임워크 레벨에서 처리
 - **Reactor Context / context-propagation** — 스레드 대신 구독 체인에 컨텍스트를 싣는 reactive의 답
-- **Scoped Values** — Virtual Thread 시대에 ThreadLocal을 대체하려는 JDK의 새 메커니즘 (JEP 시리즈로 진행 중)
+- **Scoped Values** — Virtual Thread 시대에 ThreadLocal을 대체하려는 JDK의 새 메커니즘 (JDK 25에서 정식화, JEP 506 — 거의 확실)
 
 ### 🔗 참고 자료
 - SLF4J/Logback 공식 문서 — MDC 챕터
@@ -137,9 +137,14 @@ reactive 파이프라인은 하나의 요청이 이벤트 루프와 스케줄러
 - Java API 문서 — ThreadLocal, InheritableThreadLocal
 
 ### ❓ 더 파볼 질문
-- **InheritableThreadLocal은 왜 풀 환경에서 무용지물인가?**
-  ↳ 부모→자식 복사가 "자식 스레드를 생성하는 순간"에 일어나기 때문이다. 풀의 스레드는 애플리케이션 기동 초기에 이미 만들어졌고 이후엔 재사용만 되므로, 요청 시점의 값이 복사될 기회 자체가 없다.
-- **Virtual Thread 환경에서 ThreadLocal은 어떤 부담이 되나?**
-  ↳ VT는 요청당 하나씩 수십만 개가 생길 수 있는데, 각 VT가 자기 ThreadLocalMap을 가지므로 ThreadLocal에 무거운 객체(버퍼, 포맷터 캐시 등)를 넣는 패턴은 메모리 사용량을 폭증시킨다. 그래서 "공유 불변 데이터"용으로는 Scoped Values가 대안으로 제시되고 있다.
-- **Reactor의 context-propagation은 실제로 어느 시점에 ThreadLocal을 복원하나?**
-  ↳ Micrometer의 context-propagation 라이브러리가 Reactor 연산자 훅에 스냅샷 복원 로직을 걸어, 각 연산자가 실행되기 직전에 Reactor Context의 값을 ThreadLocal(MDC)로 옮기고 실행 후 원상 복구한다. "구독 체인의 값이 실행 순간마다 스레드로 잠깐 내려온다"고 이해하면 된다.
+**Q. InheritableThreadLocal은 왜 풀 환경에서 무용지물인가?**
+
+**A.** 부모→자식 복사가 "자식 스레드를 생성하는 순간"에 일어나기 때문이다. 풀의 스레드는 애플리케이션 기동 초기에 이미 만들어졌고 이후엔 재사용만 되므로, 요청 시점의 값이 복사될 기회 자체가 없다.
+
+**Q. Virtual Thread 환경에서 ThreadLocal은 어떤 부담이 되나?**
+
+**A.** VT는 요청당 하나씩 수십만 개가 생길 수 있는데, 각 VT가 자기 ThreadLocalMap을 가지므로 ThreadLocal에 무거운 객체(버퍼, 포맷터 캐시 등)를 넣는 패턴은 메모리 사용량을 폭증시킨다. 그래서 "공유 불변 데이터"용으로는 Scoped Values가 대안으로 제시되고 있다.
+
+**Q. Reactor의 context-propagation은 실제로 어느 시점에 ThreadLocal을 복원하나?**
+
+**A.** Micrometer의 context-propagation 라이브러리가 Reactor 연산자 훅에 스냅샷 복원 로직을 걸어, 각 연산자가 실행되기 직전에 Reactor Context의 값을 ThreadLocal(MDC)로 옮기고 실행 후 원상 복구한다. "구독 체인의 값이 실행 순간마다 스레드로 잠깐 내려온다"고 이해하면 된다.

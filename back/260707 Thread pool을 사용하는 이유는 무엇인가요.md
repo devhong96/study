@@ -132,9 +132,15 @@ CPU 작업은 스레드가 늘 CPU를 쓰므로 코어보다 많으면 스위칭
 - Oracle Java API 문서 — ThreadPoolExecutor (동작 순서와 거부 정책의 공식 정의)
 
 ### ❓ 더 파볼 질문
-- **Tomcat은 어떻게 "큐잉 전에 max까지 증설"로 순서를 바꿨나?**
-  ↳ 자체 TaskQueue가 offer()에서 "현재 스레드 수 < max면 false를 반환"해 executor가 큐 삽입에 실패한 것으로 착각하고 스레드를 먼저 늘리게 만든다. 표준 컴포넌트의 동작을 큐 구현으로 우회한 재미있는 사례다.
-- **keepAliveTime과 allowCoreThreadTimeOut은 어떤 역할인가?**
-  ↳ core를 초과해 만들어진 스레드는 keepAliveTime 동안 유휴하면 회수된다. allowCoreThreadTimeOut을 켜면 core 스레드까지 회수 대상이 된다 — 트래픽 파도가 큰 서비스에서 유휴 자원을 줄이는 손잡이다.
-- **Virtual Thread 시대에도 풀링이 필요한 자원은 뭔가?**
-  ↳ 스레드는 싸져서 풀링할 이유가 사라지지만(VT는 풀링하지 말라는 게 공식 가이드), DB 커넥션·파일 핸들·외부 API 쿼터는 여전히 유한하다. "풀링의 대상이 스레드에서 진짜 희소 자원으로 이동한다"가 핵심 통찰이다.
+
+**Q. Tomcat은 어떻게 "큐잉 전에 max까지 증설"로 순서를 바꿨나?**
+
+**A.** 자체 TaskQueue가 offer()에서 "현재 스레드 수 < max면 false를 반환"해 executor가 큐 삽입에 실패한 것으로 착각하고 스레드를 먼저 늘리게 만든다. 표준 컴포넌트의 동작을 큐 구현으로 우회한 재미있는 사례다.
+
+**Q. keepAliveTime과 allowCoreThreadTimeOut은 어떤 역할인가?**
+
+**A.** core를 초과해 만들어진 스레드는 keepAliveTime 동안 유휴하면 회수된다. allowCoreThreadTimeOut을 켜면 core 스레드까지 회수 대상이 된다 — 트래픽 파도가 큰 서비스에서 유휴 자원을 줄이는 손잡이다.
+
+**Q. Virtual Thread 시대에도 풀링이 필요한 자원은 뭔가?**
+
+**A.** 스레드는 싸져서 풀링할 이유가 사라지지만(VT는 풀링하지 말라는 게 공식 가이드), DB 커넥션·파일 핸들·외부 API 쿼터는 여전히 유한하다. "풀링의 대상이 스레드에서 진짜 희소 자원으로 이동한다"가 핵심 통찰이다.

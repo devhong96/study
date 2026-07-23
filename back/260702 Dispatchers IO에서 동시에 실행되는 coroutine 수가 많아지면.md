@@ -143,9 +143,15 @@ val results = items.map { async { sem.withPermit { api.call(it) } } }.awaitAll()
 - Kotlin 공식 가이드 — "Coroutine context and dispatchers", "Asynchronous Flow"
 
 ### ❓ 더 파볼 질문
-- **Virtual Thread(Loom) 시대에 Dispatchers.IO의 의미는 어떻게 달라지나?**
-  ↳ blocking 호출을 VT에 태우면 "blocking = 스레드 점유"라는 전제가 깨지므로 IO 디스패처의 존재 이유가 약해진다. JDK 21+에서는 VT 기반 executor를 디스패처로 감싸 blocking 작업을 처리하는 조합이 가능하고, 코루틴과 VT의 역할 정리는 아직 진행 중인 주제다 — "경량 동시성 두 모델의 공존"이라는 관점으로 지켜볼 부분.
-- **runBlocking을 서버 코드에서 피해야 하는 이유는?**
-  ↳ 호출 스레드를 통째로 블로킹해서 코루틴의 장점을 소거하고, 톰캣 요청 스레드에서 쓰면 스레드 점유가 이중이 된다. 특히 병렬도가 제한된 디스패처 안에서 runBlocking으로 같은 디스패처의 작업을 기다리면 스레드가 서로를 기다리는 데드락도 가능하다.
-- **flatMapMerge(concurrency)는 내부적으로 어떻게 동시 수를 제한하나?**
-  ↳ 내부적으로 채널 기반으로 upstream 값을 받아 concurrency 개수만큼만 내부 Flow를 동시에 collect하는 구조다. 초과분은 자연히 suspend 대기하므로, "동시 n개 + 나머지는 대기"가 연산자 하나로 표현된다.
+
+**Q. Virtual Thread(Loom) 시대에 Dispatchers.IO의 의미는 어떻게 달라지나?**
+
+**A.** blocking 호출을 VT에 태우면 "blocking = 스레드 점유"라는 전제가 깨지므로 IO 디스패처의 존재 이유가 약해진다. JDK 21+에서는 VT 기반 executor를 디스패처로 감싸 blocking 작업을 처리하는 조합이 가능하고, 코루틴과 VT의 역할 정리는 아직 진행 중인 주제다 — "경량 동시성 두 모델의 공존"이라는 관점으로 지켜볼 부분.
+
+**Q. runBlocking을 서버 코드에서 피해야 하는 이유는?**
+
+**A.** 호출 스레드를 통째로 블로킹해서 코루틴의 장점을 소거하고, 톰캣 요청 스레드에서 쓰면 스레드 점유가 이중이 된다. 특히 병렬도가 제한된 디스패처 안에서 runBlocking으로 같은 디스패처의 작업을 기다리면 스레드가 서로를 기다리는 데드락도 가능하다.
+
+**Q. flatMapMerge(concurrency)는 내부적으로 어떻게 동시 수를 제한하나?**
+
+**A.** 내부적으로 채널 기반으로 upstream 값을 받아 concurrency 개수만큼만 내부 Flow를 동시에 collect하는 구조다. 초과분은 자연히 suspend 대기하므로, "동시 n개 + 나머지는 대기"가 연산자 하나로 표현된다.

@@ -125,9 +125,14 @@ spin은 대기자 수 × 폴링 빈도만큼 Redis에 부하가 계속 가해지
 - Spring Boot 공식 문서 — Data Redis (기본 클라이언트가 Lettuce라는 사실 확인)
 
 ### ❓ 더 파볼 질문
-- **Redisson은 pub/sub 대기용 연결을 어떻게 관리하나?**
-  ↳ 구독 전용 커넥션(풀)을 일반 명령 커넥션과 분리해서 관리한다. 락을 대량으로 쓰면 구독 채널·커넥션 수가 늘어나므로, 커넥션 설정(subscription pool 크기)이 운영 튜닝 지점이 된다 — "락도 커넥션을 먹는다"는 사실을 잊기 쉽다.
-- **spring-data-redis와 Redisson은 어떻게 같이 쓰나?**
-  ↳ redisson-spring-data 모듈이 RedisConnectionFactory 구현을 제공해 스프링 캐시 추상화(@Cacheable)까지 Redisson으로 태울 수도 있고, 반대로 캐시는 Lettuce로 두고 RedissonClient는 락 전용 빈으로만 추가하는 구성도 흔하다. 후자가 변경 범위가 작아 도입이 쉽다.
-- **RedissonFairLock(공정 락)은 내부적으로 무엇이 더 필요한가?**
-  ↳ 대기자 순서를 기록하는 큐(list)와 대기자별 타임아웃 관리가 추가된다 — 그래서 일반 락보다 Redis 연산이 많고 느리다. "순서 보장"이 비즈니스 요구일 때만 쓰고, 아니면 일반 락 + 재시도가 낫다는 트레이드오프의 근거다(구현 세부는 버전에 따라 다를 수 있음 — 개요 수준으로 이해).
+**Q. Redisson은 pub/sub 대기용 연결을 어떻게 관리하나?**
+
+**A.** 구독 전용 커넥션(풀)을 일반 명령 커넥션과 분리해서 관리한다. 락을 대량으로 쓰면 구독 채널·커넥션 수가 늘어나므로, 커넥션 설정(subscription pool 크기)이 운영 튜닝 지점이 된다 — "락도 커넥션을 먹는다"는 사실을 잊기 쉽다.
+
+**Q. spring-data-redis와 Redisson은 어떻게 같이 쓰나?**
+
+**A.** redisson-spring-data 모듈이 RedisConnectionFactory 구현을 제공해 스프링 캐시 추상화(@Cacheable)까지 Redisson으로 태울 수도 있고, 반대로 캐시는 Lettuce로 두고 RedissonClient는 락 전용 빈으로만 추가하는 구성도 흔하다. 후자가 변경 범위가 작아 도입이 쉽다.
+
+**Q. RedissonFairLock(공정 락)은 내부적으로 무엇이 더 필요한가?**
+
+**A.** 대기자 순서를 기록하는 큐(list)와 대기자별 타임아웃 관리가 추가된다 — 그래서 일반 락보다 Redis 연산이 많고 느리다. "순서 보장"이 비즈니스 요구일 때만 쓰고, 아니면 일반 락 + 재시도가 낫다는 트레이드오프의 근거다(구현 세부는 버전에 따라 다를 수 있음 — 개요 수준으로 이해).
