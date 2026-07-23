@@ -209,5 +209,8 @@ AMI ID는 리전마다 다르고 수시로 바뀌므로 하드코딩 금지 → 
 
 ## ❓ 남은 질문
 1. 원격 State에서 **락(lock)**은 정확히 어느 시점에 잡히고, 동시 apply 충돌을 어떻게 막나? (S3 native locking vs DynamoDB)
+   → **답:** plan/apply가 state를 쓰기 시작할 때 락을 잡고 끝나면 푼다. 락이 걸린 동안 다른 apply는 대기·실패한다. DynamoDB 락테이블이 전통적 방식이고, S3 네이티브 락(`use_lockfile`, TF 1.10+)은 별도 테이블 없이 S3만으로 잠근다.
 2. tfstate에 **민감정보(비밀번호·키)가 평문**으로 들어가는데 실무에선 어떻게 보호하나? (원격 backend 암호화·접근제어)
+   → **답:** 로컬에 두지 말고 저장 암호화(S3 SSE)·전송 암호화·엄격한 IAM 접근제어가 되는 원격 backend에 둔다. 근본적으론 민감값을 Vault·Secrets Manager에서 런타임에 주입해 state 노출 자체를 줄인다.
 3. `data` 소스는 **언제 조회**되나? (plan 시점 vs apply 시점, 그 결과가 plan diff에 주는 영향)
+   → **답:** 원칙적으로 **plan 시점**에 조회돼 그 값으로 diff를 만든다. 단 의존하는 값이 apply 때 결정(known after apply)되면 조회가 apply로 미뤄지고, 그동안 그 data에 의존한 리소스는 plan에서 "알 수 없음"으로 표시된다.

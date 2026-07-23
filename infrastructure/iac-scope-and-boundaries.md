@@ -97,5 +97,8 @@ resource "aws_elasticache_replication_group" "cache" {
 
 ## ❓ 남은 질문
 1. 콘솔에서 인스턴스 타입을 바꾸면 다음 `terraform apply`는 어떻게 반응하나? (drift 처리: 되돌림 vs `ignore_changes`)
+   → **답:** plan이 실제(콘솔 변경값)와 코드의 drift를 감지해 기본은 코드 기준으로 **되돌리는** 변경을 제안한다. 코드로 관리하고 싶지 않은 속성은 `lifecycle.ignore_changes`로 제외해 되돌림을 막는다.
 2. EKS 클러스터는 Terraform, 그 안 앱(Deployment)은 왜 Helm/ArgoCD로 따로 관리하나? (생성 빈도·생명주기 차이)
+   → **답:** 클러스터 같은 인프라는 생성 빈도가 낮고 수명이 길어 Terraform이 맞고, 앱 배포는 하루에도 여러 번 바뀌는 짧은 생명주기라 K8s 네이티브·GitOps(Helm/ArgoCD)가 롤아웃·롤백에 유리하다 — 변경 주기·책임 경계가 달라 도구를 나눈다.
 3. `terraform import`로 기존 인프라를 코드화할 때, state엔 들어오지만 `.tf` 코드는 자동 생성 안 되는 이유는? (state vs config)
+   → **답:** import는 실제 리소스를 **state에 매핑**만 하고 HCL은 사용자가 직접 써야 한다(state=실제 상태, config=의도라 자동 역생성이 위험). 코드가 없으면 다음 plan이 삭제로 보이며, TF 1.5+의 `import` 블록·`-generate-config-out`이 초안 생성을 돕는다.

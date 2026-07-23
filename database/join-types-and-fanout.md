@@ -312,6 +312,10 @@ for outer 각 행:
 > ## ❓ 남은 질문
 >
 > 1. ~~물리 알고리즘~~ → **6장에서 정리 완료.** 남은 갈래: `member LEFT JOIN orders`에서 옵티마이저가 outer/inner를 마음대로 뒤집을 수 있나? (INNER와 뭐가 다른가)
+>    → **답:** INNER는 결과가 대칭이라 조인 순서를 자유롭게 뒤집지만, OUTER는 "왼쪽 보존"이 결과(NULL 채움)를 바꾸므로 함부로 못 뒤집는다. 단 WHERE에서 오른쪽 컬럼을 `IS NOT NULL`로 걸면 사실상 INNER가 돼 뒤집기가 가능해진다.
 > 2. RIGHT/FULL OUTER JOIN 실제 사용 사례, MySQL이 FULL을 지원 안 하는데 어떻게 흉내내나(`UNION`)?
+>    → **답:** RIGHT는 보통 LEFT로 바꿔 써 실무 사용이 드물다. FULL OUTER(양쪽 보존)는 MySQL 미지원이라 `LEFT JOIN` 결과와 `RIGHT JOIN` 결과를 `UNION`으로 합쳐 흉내낸다(중복은 UNION이 제거).
 > 3. `EXISTS`(세미조인) vs `IN` vs `JOIN` — 언제 무엇이 빠른가?
+>    → **답:** 존재 여부만 필요하면 EXISTS/세미조인이 매칭 하나 찾고 멈춰 유리(fan-out 없음). IN은 서브쿼리 결과가 작고 NULL이 없을 때 무난, JOIN은 상대 컬럼도 SELECT할 때. 현대 옵티마이저는 셋을 비슷한 계획으로 수렴시키기도 한다.
 > 4. fan-out을 `COUNT(DISTINCT ...)`로 우회하는 건 언제 되고 언제 안 되나(SUM엔 왜 안 통하나)?
+>    → **답:** DISTINCT가 뻥튀기된 중복 행을 접어주므로 COUNT(DISTINCT)는 개수를 바로잡는다. 하지만 SUM은 같은 값이 여러 번 더해지는 걸 DISTINCT가 못 막고(값 같으면 통째로 사라져 과소집계) → 조인 전 서브쿼리로 먼저 집계해야 한다.

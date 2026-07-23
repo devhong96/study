@@ -176,5 +176,8 @@ order.getItems().remove(item); // cascade: 아무 일 없음(DB에 남음) / orp
 
 > ## ❓ 남은 질문
 > 1. `@OneToMany`를 **단방향**(`mappedBy` 없이 `@JoinColumn`만)으로 쓰면 왜 INSERT 후 별도 UPDATE 쿼리가 추가로 나갈까?
+>    → **답:** FK 주인은 자식인데 부모 컬렉션 쪽에서 관계를 관리하니, Hibernate가 자식을 FK NULL로 먼저 INSERT한 뒤 관계를 채우는 UPDATE를 또 날린다. `@ManyToOne`(자식이 FK 주인) 양방향으로 바꾸면 INSERT 한 번으로 끝난다.
 > 2. 양방향 매핑이 N+1·직렬화 무한순환의 원인이 되는 이유는? (→ N+1 노트 4-1과 연결)
+>    → **답:** 부모→자식→부모… 참조가 순환해 JSON 직렬화가 무한 재귀에 빠지고, 지연로딩 컬렉션을 순회하면 부모마다 자식 쿼리가 나가 N+1이 된다. `@JsonIgnore`/DTO 변환과 fetch join으로 끊는다.
 > 3. `cascade`와 `orphanRemoval`의 차이는? 언제 `CascadeType.ALL + orphanRemoval=true`가 위험한가?
+>    → **답:** cascade는 부모의 영속 연산(저장·삭제)을 자식에 **전파**하고, orphanRemoval은 컬렉션에서 **빠진(연결 끊긴) 자식**을 자동 DELETE한다. 자식을 여러 부모가 공유하면 `ALL+orphanRemoval=true`는 한쪽에서 빼거나 지웠을 뿐인데 공유 자식이 통째로 삭제돼 위험하다.

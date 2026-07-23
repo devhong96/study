@@ -190,5 +190,8 @@ CPU가 실행 중인 스레드를 잠깐 내리고 다른 스레드를 올리는
 
 > ## ❓ 남은 질문
 > 1. `vmstat`/`pidstat -w`로 실제 서버의 CS 수를 어떻게 읽고, 어느 수치부터 "과하다"고 판단하나? (voluntary vs involuntary 비율의 의미)
+>    → **답:** `cswch/s`(자발적=I/O·락 대기)와 `nvcswch/s`(비자발적=타임슬라이스 소진·선점)를 본다. 절대 임계치는 없고, nvcswch가 높으면 CPU 경합(스레드 과다)·cswch가 높으면 잦은 블로킹이 원인 — 처리량이 떨어지는데 CS가 급증하면 과하다고 본다.
 > 2. (모드 전환 vs CS는 6장에서 정리됨) → 후속: **KPTI**로 syscall이 비싸진 만큼, 실무에서 **syscall 횟수를 줄이는** 기법(배치 I/O, `io_uring`, `mmap`)은 각각 어떻게 비용을 아끼나?
+>    → **답:** 배치 I/O(`readv/writev`·다건 묶기)는 호출 횟수 자체를 줄이고, `io_uring`은 커널과 공유하는 링버퍼로 제출·완료를 모아 매 연산의 syscall을 없애며, `mmap`은 파일을 메모리에 매핑해 read/write syscall 대신 페이지폴트로 접근한다 — 모두 유저↔커널 전환 비용을 절감.
 > 3. 스레드 풀 크기를 코어 수보다 훨씬 크게 잡으면 CS가 늘어 오히려 느려진다 — 최적 크기는 어떻게 추정하나? (CPU-bound vs I/O-bound, Little's Law) (→ [thread-pool.md](./thread-pool.md))
+>    → **답:** CPU-bound는 코어 수(±1)면 충분하고, I/O-bound는 대기가 길수록 더 크게 잡는다. `N = 코어수 × (1 + 대기시간/서비스시간)`이나 Little's Law(동시성=도착률×응답시간)로 추정하고 부하 테스트로 보정한다.
